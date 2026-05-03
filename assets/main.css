@@ -1,0 +1,11 @@
+html, body, #__nuxt {
+  min-height: 100%;
+}
+
+body {
+  background:
+    radial-gradient(900px 500px at 8% -5%, rgba(56, 189, 248, 0.18), transparent 60%),
+    radial-gradient(900px 500px at 90% -10%, rgba(129, 140, 248, 0.16), transparent 60%),
+    linear-gradient(180deg, #050912 0%, #0b1220 45%, #080d17 100%);
+  color: #e5eefc;
+}
