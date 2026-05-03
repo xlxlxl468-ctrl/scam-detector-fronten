@@ -1,9 +1,9 @@
 {
-  "_hash": "iTYCgYkjQ_U8xbAmGep8n_VtFQlskeM7ASd7aBNqhg0",
+  "_hash": "v2dg6F9nwXy_QR5h4CM1PSjRR8j5qKu0Dk-hWGC0L_c",
   "project": {
-    "rootDir": "C:/專題/frontend"
+    "rootDir": "D:/develop/scam-detector-frontend/scam-detector-fronten"
   },
   "versions": {
-    "nuxt": "3.21.2"
+    "nuxt": "4.4.4"
   }
 }

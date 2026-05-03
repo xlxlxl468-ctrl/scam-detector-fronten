@@ -5,11 +5,12 @@ export default defineNuxtConfig({
   css: ['~/assets/main.css'],
   runtimeConfig: {
     public: {
-      apiBase: 'http://127.0.0.1:8000/api'
+      apiBase: '/api'
     }
   },
+  // @ts-ignore
   nitro: {
-    devProxy: {
+      devProxy: {
       '/api': {
         target: 'http://127.0.0.1:8000',
         changeOrigin: true,

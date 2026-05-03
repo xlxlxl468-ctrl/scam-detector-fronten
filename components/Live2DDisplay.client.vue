@@ -170,8 +170,8 @@ onUnmounted(() => {
 <style scoped>
 .container {
   position: relative;
-  width: 200px;
-  height: 300px;
+  width: 150px;
+  height: px;
   pointer-events: none; /* 讓點擊穿透，不會擋到後面元件 */
 }
 
