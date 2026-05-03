@@ -7,13 +7,6 @@ const loading = ref(false)
 const error = ref('')
 const result = ref<any>(null)
 
-const introDone = ref(false)
-const introOverlayRef = ref<HTMLElement | null>(null)
-const introTopRef = ref<HTMLElement | null>(null)
-const introBottomRef = ref<HTMLElement | null>(null)
-const introTitleTopRef = ref<HTMLElement | null>(null)
-const introTitleBottomRef = ref<HTMLElement | null>(null)
-
 const batchText = ref('')
 const batchLoading = ref(false)
 const batchError = ref('')
@@ -278,6 +271,13 @@ const sendChat = async () => {
   }
 }
 
+const handleChatKeydown = (e: KeyboardEvent) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    e.preventDefault()
+    sendChat()
+  }
+}
+
 const runUrlScan = async () => {
   urlError.value = ''
   urlResult.value = null
@@ -451,154 +451,25 @@ const setupMagneticButtons = () => {
 }
 
 onMounted(async () => {
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  let setupScroll: () => void = () => {}
-
-  if (introOverlayRef.value && introTopRef.value && introBottomRef.value && introTitleTopRef.value && introTitleBottomRef.value) {
-    try {
-      const [{ default: gsap }, { ScrollTrigger }] = await Promise.all([
-          import('gsap'),
-          import('gsap/ScrollTrigger')
-        ]);
-        gsap.registerPlugin(ScrollTrigger);
-      
-        setupScroll = () => {
-          if (!document.querySelector('.title-pin-section')) return;
-          const isLowPower = reducedMotion || isLiteFx.value;
-          
-          // Keep ambient animation but slow it down on low-power devices.
-          gsap.to('.cyber-grid-layer', {
-            backgroundPosition: "0px 80px",
-            ease: "none",
-            duration: isLowPower ? 2.4 : 1,
-            repeat: -1,
-          });
-
-          if (isLowPower) {
-            return;
-          }
-
-          let mm = gsap.matchMedia();
-
-          mm.add("(min-width: 768px)", () => {
-            // Parallax particles background
-            gsap.to('.fx-particle-layer', {
-              yPercent: 40,
-              ease: 'none',
-              scrollTrigger: {
-                trigger: '.theme-shell',
-                start: 'top top',
-                end: 'bottom top',
-                scrub: true
-              }
-            });
-
-            // Apple style Pin & Scale!
-            const tlPin = gsap.timeline({
-              scrollTrigger: {
-                trigger: '.title-pin-section',
-                start: 'top top',
-                end: '+=900',
-                pin: true,
-                scrub: true,   // Link animation specifically to scroll movement
-              }
-            });
-
-            tlPin.to('.page-title', {
-              scale: 24,
-                opacity: 0,
-                ease: 'power2.in',
-                duration: 1
-              }, 0)
-              .to('.hero-subtitle', {
-                y: -50,
-                opacity: 0,
-                duration: 0.3
-              }, 0)
-              .from('.dashboard-content', {
-                y: 100,
-                opacity: 0,
-                ease: 'power3.out',
-                duration: 0.5
-              }, 0.5);
-
-            // Scroll Reveal on Cards (3D Flip In)
-            gsap.utils.toArray('.f-card').forEach((card: any) => {
-              gsap.from(card, {
-                scrollTrigger: {
-                  trigger: card,
-                  start: 'top 85%',
-                  toggleActions: 'play none none reverse'
-                },
-                y: 80,
-                rotationX: -15,
-                opacity: 0,
-                duration: 1,
-                ease: 'back.out(1.4)'
-              });
-            });
-          });
-        };
-
-        const holdDuration = 0.5 // 縮短固定停留時間
-
-      const tl = gsap.timeline({
-        defaults: { ease: 'power3.out' },
-        onComplete: () => {
-          introDone.value = true; setTimeout(()=>setupScroll(), 50);
-        }
-      })
-
-      tl.set([introTitleTopRef.value, introTitleBottomRef.value], {
-        scale: 6,           // 一開始字體放超大
-        filter: 'blur(30px)', // 大片殘影模楜
-        opacity: 0
-      })
-      .set([introTopRef.value, introBottomRef.value], {
-        y: 0,
-        opacity: 1
-      })
-        // 效果一：重擊進場 (Slam IN)
-        .to([introTitleTopRef.value, introTitleBottomRef.value], {
-          scale: 1,
-          filter: 'blur(0px)',
-          opacity: 1,
-          duration: 0.9,
-          ease: 'expo.out' // 快速落下然後急剎車
-        })
-        // 效果二：駭客故障抖動 (Glitch / Jitter)
-        .to(introTitleTopRef.value, { x: -8, duration: 0.04, yoyo: true, repeat: 7 }, '-=0.7')
-        .to(introTitleBottomRef.value, { x: 8, duration: 0.04, yoyo: true, repeat: 7 }, '<')
-        .to([introTitleTopRef.value, introTitleBottomRef.value], { x: 0, duration: 0.02 }) // 抖完歸位
-        
-        // 效果三：武士刀殘影撕裂 (Katana Slice & Rush Out)
-        .to([introTopRef.value, introTitleTopRef.value], {
-          y: '-80vh',
-          scale: 1.3,     // 暴衝時微放大，製造衝出鏡頭的 3D 感
-          skewX: -15,     // 斜切變形
-          rotate: -2,     // 鏡頭歪斜
-          duration: 0.6,
-          ease: 'power4.inOut'
-        }, `+=${holdDuration}`)
-        .to([introBottomRef.value, introTitleBottomRef.value], {
-          y: '80vh',
-          scale: 1.3,
-          skewX: 15,
-          rotate: 2,
-          duration: 0.6,
-          ease: 'power4.inOut'
-        }, '<')
-        .to(introOverlayRef.value, {
-          opacity: 0,
-          duration: 0.3
-        }, '-=0.2')
-    } catch {
-      introDone.value = true; setTimeout(()=>setupScroll(), 50);
-    }
-  }
 
   isLiteFx.value = window.matchMedia('(prefers-reduced-motion: reduce)').matches || (navigator.hardwareConcurrency || 8) <= 4
   createBgParticles()
+  
+  // 背景動畫
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  if (!reducedMotion && !isLiteFx.value) {
+    try {
+      const { default: gsap } = await import('gsap')
+      gsap.to('.cyber-grid-layer', {
+        backgroundPosition: "0px 80px",
+        ease: "none",
+        duration: 2.4,
+        repeat: -1,
+      })
+    } catch (e) {
+      // GSAP 加載失敗，繼續執行
+    }
+  }
 
   try {
     const raw = localStorage.getItem('scam_history')
@@ -703,18 +574,6 @@ const downloadCsv = () => {
 </script>
 
 <template>
-  <div v-if="!introDone" ref="introOverlayRef" class="intro-overlay" aria-hidden="true">
-    <div ref="introTopRef" class="intro-half intro-half-top"></div>
-    <div ref="introBottomRef" class="intro-half intro-half-bottom"></div>
-    <div class="intro-center-wrap">
-      <div class="intro-title-wrap">
-        <h1 class="intro-title intro-title-ghost">詐騙偵測器</h1>
-        <h1 ref="introTitleTopRef" class="intro-title intro-title-slice intro-title-top">詐騙偵測器</h1>
-        <h1 ref="introTitleBottomRef" class="intro-title intro-title-slice intro-title-bottom">詐騙偵測器</h1>
-      </div>
-    </div>
-  </div>
-
   <div class="cyber-grid-layer"></div>
   <UContainer
     :class="['py-10 relative z-10 transition-all duration-500 theme-shell shell-glow', neonMode ? 'mode-neon' : 'mode-plain', isLiteFx ? 'fx-lite' : 'fx-full']"
@@ -741,21 +600,18 @@ const downloadCsv = () => {
     </div>
 
     
-      <!-- Apple-style Pin & Scale Hero Section -->
-      <div class="title-pin-section h-screen w-full flex items-center justify-center -mt-10 mb-20 relative z-20 pointer-events-none">
-        <div class="text-center w-full max-w-4xl px-4 flex flex-col items-center">
-          <h1 class="page-title text-5xl md:text-[8rem] font-black tracking-wide text-transparent bg-clip-text bg-gradient-to-br from-cyan-300 via-emerald-300 to-indigo-500 drop-shadow-[0_0_25px_rgba(56,189,248,0.4)] whitespace-nowrap">
-             詐騙偵測器
-          </h1>
-          <p class="hero-subtitle text-slate-300 mt-6 text-xl font-light tracking-widest hidden md:block">
-            Future Security Console · AI Scam Detection
-          </p>
-          
-        </div>
+      <!-- Title Section -->
+      <div class="text-center w-full px-3 mb-12 relative z-10">
+        <h1 class="text-4xl md:text-6xl font-black tracking-wide text-transparent bg-clip-text bg-gradient-to-br from-cyan-300 via-emerald-300 to-indigo-500 drop-shadow-[0_0_25px_rgba(56,189,248,0.4)]">
+           詐騙偵測器
+        </h1>
+        <p class="text-slate-300 mt-4 text-lg font-light tracking-widest">
+          Future Security Console · AI Scam Detection
+        </p>
       </div>
 
-      <!-- Dashboard content that scrolls up as title scales -->
-      <div class="dashboard-content max-w-6xl mx-auto z-10 relative">
+      <!-- Dashboard content -->
+      <div class="max-w-6xl mx-auto z-10 relative">
 <UCard class="f-card shimmer-card enter-up mb-6 border border-cyan-400/25 bg-slate-900/70 backdrop-blur-xl shadow-[0_0_45px_-18px_rgba(56,189,248,0.45)]" style="--delay: .06s;">
       <template #header>
         <div class="font-semibold text-cyan-200 tracking-wide">單訊息檢測</div>
@@ -1092,29 +948,31 @@ const downloadCsv = () => {
     </UCard>
 
     </div>
-      <UButton v-if="!chatOpen" class="ai-chat-fab fx-btn bg-gradient-to-r from-cyan-500 to-indigo-500 border-0" @click="chatOpen = true">
+    
+    <!-- AI助手問答區 -->
+    <UButton v-if="!chatOpen" class="ai-chat-fab fx-btn bg-gradient-to-r from-cyan-500 to-indigo-500 border-0" @click="chatOpen = true">
       AI 助手
     </UButton>
 
-    <UCard v-if="chatOpen" class="f-card shimmer-card ai-follow-screen border border-cyan-300/20 bg-slate-900/80 backdrop-blur-xl">
+    <UCard v-if="chatOpen" class="f-card shimmer-card ai-follow-screen border border-cyan-400/20 bg-slate-900/80 backdrop-blur-xl w-full md:w-[24rem] lg:w-[28rem]">
       <template #header>
         <div class="flex items-center justify-between gap-2">
           <div class="font-semibold text-cyan-200 tracking-wide">AI 防詐問答助手</div>
-          <UButton size="2xs" color="gray" variant="soft" class="fx-btn" @click="chatOpen = false">收合</UButton>
+          <UButton size="xs" color="gray" variant="soft" class="fx-btn" @click="chatOpen = false">收合</UButton>
         </div>
       </template>
 
-      <div class="ai-chat-layout">
-        <div class="ai-live2d-slot">
+      <div class="ai-chat-layout flex items-center gap-6 mx-4">
+        <div class="ai-live2d-slot w-20 md:w-36 h-24 md:h-36 flex-shrink-0 -ml-5 md:-ml-6">
           <Live2DDisplay ref="live2dRef" model-url="/live2d/girl/mao_pro_zh/runtime/mao_pro.model3.json" />
         </div>
 
-        <div class="flex-1 min-w-0">
-          <div class="space-y-2 max-h-72 overflow-auto pr-1">
+        <div class="chat-content-column flex-1 bg-black/30 rounded-lg p-4 border border-slate-800/50">
+          <div class="space-y-2 w-full max-h-[36rem] overflow-auto pr-1">
             <div
               v-for="(m, i) in chatMessages"
               :key="i"
-              :class="['rounded-lg p-3 text-sm whitespace-pre-wrap', m.role === 'user' ? 'bg-cyan-500/15 border border-cyan-400/30 text-cyan-50 ml-8' : 'bg-slate-950/60 border border-slate-700 text-slate-100 mr-8']"
+              :class="['rounded-lg p-3 text-sm whitespace-pre-wrap', m.role === 'user' ? 'bg-cyan-500/15 border border-cyan-400/30 text-cyan-50 ml-auto mr-0 w-[75%] text-right' : 'bg-slate-950/60 border border-slate-700 text-slate-100 ml-0 mr-auto w-[75%]']"
             >
               <div class="text-[11px] opacity-70 mb-1">{{ m.role === 'user' ? '你' : 'AI 助手' }}</div>
               <div>{{ m.content }}</div>
@@ -1123,16 +981,24 @@ const downloadCsv = () => {
 
           <UAlert v-if="chatError" color="red" variant="soft" :title="chatError" class="mt-3" />
 
-          <div class="mt-3 flex gap-2 items-end">
+          <div class="mt-4 relative">
             <UTextarea
               v-model="chatInput"
-              :rows="2"
-              placeholder="例如：這則訊息為什麼被判定為詐騙？我該怎麼處理？"
-              class="flex-1 [&>textarea]:bg-slate-950/70 [&>textarea]:text-slate-100 [&>textarea]:border-cyan-400/30 [&>textarea]:focus:border-cyan-300"
+              :rows="3"
+              placeholder="例如：這則訊息為什麼被判定為詐騙？我該怎麼處理？ (Ctrl+Enter 發送)"
+              class="w-full autoresize [&>textarea]:min-h-[96px] [&>textarea]:bg-slate-950/70 [&>textarea]:text-slate-100 [&>textarea]:border-cyan-400/30 [&>textarea]:focus:border-cyan-300 [&>textarea]:pr-12"
+              @keydown="handleChatKeydown"
             />
-            <UButton :loading="chatLoading" class="fx-btn bg-gradient-to-r from-cyan-500 to-indigo-500 border-0" @click="sendChat">
-              發送
-            </UButton>
+            <button
+              :disabled="chatLoading || !chatInput.trim()"
+              @click="sendChat"
+              class="absolute bottom-3 right-3 text-cyan-400 hover:text-cyan-300 disabled:text-slate-600 transition-colors"
+              :title="chatLoading ? '發送中...' : '發送 (Ctrl+Enter)'"
+            >
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5.951-1.429 5.951 1.429a1 1 0 001.169-1.409l-7-14z" />
+              </svg>
+            </button>
           </div>
         </div>
       </div>
@@ -1405,7 +1271,9 @@ const downloadCsv = () => {
   position: fixed;
   right: 20px;
   bottom: 20px;
-  width: min(420px, calc(100vw - 28px));
+  padding: 0;
+  width: min(28rem, calc(100vw - 28px));
+  max-width: min(28rem, calc(100vw - 28px));
   z-index: 60;
   box-shadow: 0 14px 44px rgba(2, 6, 23, 0.55);
 }
@@ -1413,11 +1281,15 @@ const downloadCsv = () => {
 .ai-chat-layout {
   display: flex;
   gap: 12px;
-  align-items: flex-start;
+  align-items: center;
 }
 
 .ai-live2d-slot {
   flex: 0 0 auto;
+}
+
+.chat-content-column {
+  min-width: 16rem;
 }
 
 .ai-chat-fab {
